@@ -2,6 +2,8 @@
 
 A Claude Code mod (`ste-refine`) that rewrites your prompt in ASD-STE100 Simplified Technical English before Claude reads it. You see the rewrite first and choose to accept it, edit it, or send your original.
 
+![The review pane showing the original prompt, the STE100 rewrite and the Accept, Edit and Deny buttons](docs/review-pane.png)
+
 The rewrite rules come from the [asd-ste100 skill](https://github.com/danyuchn/asd-ste100-skill): short sentences, active voice, one instruction per sentence, no phrasal verbs, no stacked hedges. Code, paths, identifiers, numbers and hedges stay as you wrote them.
 
 ## How it works
