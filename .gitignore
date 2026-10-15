@@ -1,0 +1,21 @@
+# Types Claude Code writes for this build when it loads the mod
+.claude-plugin/types/
+
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local env
+.env
+.env.*

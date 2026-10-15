@@ -1,0 +1,8 @@
+# Bundled copy of danyuchn/asd-ste100-skill: keep it as upstream wrote it.
+skill/
+
+# Types Claude Code writes when it loads the mod
+.claude-plugin/types/
+
+node_modules/
+package-lock.json

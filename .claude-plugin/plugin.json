@@ -1,0 +1,15 @@
+{
+  "name": "ste-refine",
+  "version": "0.1.0",
+  "description": "Rewrites each typed prompt with the ASD-STE100 skill and lets you accept, edit or deny the rewrite before it is sent",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "model": {
+      "type": "string",
+      "title": "Rewrite model",
+      "description": "The model that rewrites the prompt, pinned to a version",
+      "default": "claude-haiku-5-5",
+      "options": ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"]
+    }
+  }
+}
