@@ -51,7 +51,14 @@ Open `/config` and set **Rewrite model** to `claude-haiku-5-5`, `claude-sonnet-5
 
 ## Install
 
-Clone the repository, then start Claude Code with the mod loaded:
+Inside Claude Code, add this repository as a marketplace and install the mod:
+
+```
+/plugin marketplace add minhtran3124/cc-ste-mod
+/plugin install ste-refine@cc-ste-mod
+```
+
+Or clone the repository, then start Claude Code with the mod loaded:
 
 ```sh
 git clone https://github.com/minhtran3124/cc-ste-mod.git

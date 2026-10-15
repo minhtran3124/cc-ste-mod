@@ -1,0 +1,14 @@
+{
+  "name": "cc-ste-mod",
+  "description": "Claude Code mod that rewrites your prompt in ASD-STE100 Simplified Technical English",
+  "owner": {
+    "name": "Minh Tran"
+  },
+  "plugins": [
+    {
+      "name": "ste-refine",
+      "source": "./",
+      "description": "Rewrites each typed prompt with the ASD-STE100 skill and lets you accept, edit or deny the rewrite before it is sent"
+    }
+  ]
+}
