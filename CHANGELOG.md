@@ -4,6 +4,8 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-17
+
 ### Added
 
 - A warning in the review when a rewrite loses a code span, URL, path, number or negation. The focus then starts on Edit.
@@ -36,5 +38,6 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The **Rewrite model** setting.
 - Tests, and the marketplace entry for installing from this repository.
 
-[Unreleased]: https://github.com/minhtran3124/cc-ste-mod/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/minhtran3124/cc-ste-mod/releases/tag/v0.1.0
+[Unreleased]: https://github.com/minhtran3124/cc-ste-mod/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/minhtran3124/cc-ste-mod/compare/069e747...v0.2.0
+[0.1.0]: https://github.com/minhtran3124/cc-ste-mod/commit/069e747

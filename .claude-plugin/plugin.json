@@ -1,6 +1,6 @@
 {
   "name": "ste-refine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rewrites each typed prompt with the ASD-STE100 skill and lets you accept, edit or deny the rewrite before it is sent",
   "author": {
     "name": "Minh Tran"
