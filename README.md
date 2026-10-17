@@ -51,6 +51,8 @@ The mod sends the prompt unchanged, without a rewrite, when:
 
 Open `/config` and set **Rewrite model** to `claude-haiku-5-5`, `claude-sonnet-5-5` or `claude-opus-5-5`. Each is a pinned model version, so the rewrite does not change when a new model ships. `claude-haiku-5-5` is the fastest. Every rewritten prompt waits for one model call, up to 30 seconds.
 
+**Skill source** is `bundled` by default. Set it to `project` to read `.claude/skills/asd-ste100/SKILL.md` from the project you run in (see Install).
+
 ## Install
 
 Inside Claude Code, add this repository as a marketplace and install the mod:
@@ -69,7 +71,7 @@ claude --plugin-dir ./cc-ste-mod
 
 To load it in every session, add the folder's absolute path to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`.
 
-The mod reads the skill from `.claude/skills/asd-ste100/SKILL.md` in your project when it exists. Otherwise it uses the copy in `skill/`.
+The mod uses the skill copy in `skill/`. To use `.claude/skills/asd-ste100/SKILL.md` from your project instead, set **Skill source** to `project`. Do that only for projects you trust: a cloned repo can ship its own skill, and the rewrite follows it.
 
 ## Develop
 
