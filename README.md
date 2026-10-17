@@ -39,6 +39,7 @@ The mod sends the prompt unchanged, without a rewrite, when:
 /ste status   show whether the rewrite is on, and the model
 /ste review   open the waiting rewrite in its pane again
 /ste skip     stop a rewrite that is running and send the prompt as typed
+/ste check    say what the mod would do with some text, with no model call: /ste check <text>
 /ste on       turn the rewrite on (kept across sessions)
 /ste off      turn it off (kept across sessions)
 /ste pause    turn it off for this session only
@@ -50,6 +51,8 @@ The mod sends the prompt unchanged, without a rewrite, when:
 ## Settings
 
 Open `/config` and set **Rewrite model** to `claude-haiku-5-5`, `claude-sonnet-5-5` or `claude-opus-5-5`. Each is a pinned model version, so the rewrite does not change when a new model ships. `claude-haiku-5-5` is the fastest. Every rewritten prompt waits for one model call, up to 30 seconds.
+
+**Rewrite mode** is `strict` by default: every STE rule applies. Set it to `pragmatic` to keep technical nouns and project terms as you wrote them, and to allow sentences of up to 25 words. `/ste status` shows the mode.
 
 **Skill source** is `bundled` by default. Set it to `project` to read `.claude/skills/asd-ste100/SKILL.md` from the project you run in (see Install).
 

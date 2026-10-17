@@ -677,6 +677,25 @@ test('a prompt that is simple without its pasted block goes as typed', async ($,
   expect(sent).toEqual([text])
 })
 
+test('/ste check says what would happen, with no model call', async ($, on) => {
+  const { model } = engine(on)
+  const risky = await $.command.run(ste('check Please kick off the build and then read the logs'))
+  expect(risky.text).toMatch(/It gets a rewrite/)
+  expect(risky.text).toMatch(/phrasal verb "kick off"/)
+  const simple = await $.command.run(ste('check commit and push code'))
+  expect(simple.text).toMatch(/It goes as typed, because it is simple/)
+  expect((await $.command.run(ste('check * kick off the build and read the logs'))).text).toMatch(/starts with \*/)
+  expect((await $.command.run(ste('check'))).text).toMatch(/Usage: \/ste check/)
+  expect(model.calls).toBe(0)
+})
+
+test('the rewrite call follows the strict mode by default, and /ste status names the mode', async ($, on) => {
+  const { model } = engine(on)
+  await $.prompt.submit(typed(TYPED))
+  expect(model.systems[0]).toContain('Use Strict mode')
+  expect((await $.command.run(ste('status'))).text).toMatch(/mode: strict/)
+})
+
 test('a rewrite that only moves small words is not shown', async ($, on) => {
   const typedText =
     'Read the README and the CONTRIBUTING file. Then update the install section and the test section so they match the current commands.'
