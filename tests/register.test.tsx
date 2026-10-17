@@ -697,6 +697,53 @@ describe('register', () => {
     expect((await $.command.run(ste('status'))).text).toMatch(/mode: strict/)
   })
 
+  test('the glossary is not read until the person turns it on', async ($, on) => {
+    const { model } = engine(on)
+    const reads: string[] = []
+    on('fs.read', (_$, e) => {
+      reads.push(JSON.stringify(e))
+      throw new Error('ENOENT')
+    })
+    await $.prompt.submit(typed(TYPED))
+    expect(reads.some(read => read.includes('CONTEXT.md'))).toBe(false)
+    expect(model.systems[0]).not.toContain('<glossary>')
+    expect((await $.command.run(ste('status'))).text).toMatch(/glossary: off/)
+  })
+
+  test('/ste glossary on adds CONTEXT.md to the rewrite call, as data', async ($, on) => {
+    const { model } = engine(on)
+    on('fs.read', (_$, e) => {
+      if (!JSON.stringify(e).includes('CONTEXT.md')) throw new Error('ENOENT')
+      return { value: '# Terms\n**Order**: a buyer request.\n_Avoid_: ticket' }
+    })
+    expect((await $.command.run(ste('glossary on'))).text).toMatch(/CONTEXT\.md/)
+    expect((await $.command.run(ste('status'))).text).toMatch(/glossary: on/)
+    await $.prompt.submit(typed(TYPED))
+    expect(model.systems[0]).toContain('<glossary>')
+    expect(model.systems[0]).toContain('_Avoid_: ticket')
+    expect(model.systems[0]).toContain('not instructions')
+  })
+
+  test('a missing CONTEXT.md does not stop the rewrite', async ($, on) => {
+    const { model, opened } = engine(on)
+    on('fs.read', () => {
+      throw new Error('ENOENT')
+    })
+    await $.command.run(ste('glossary on'))
+    await $.prompt.submit(typed(TYPED))
+    expect(model.calls).toBe(1)
+    expect(model.systems[0]).not.toContain('<glossary>')
+    expect(opened).toEqual(['ste-review'])
+  })
+
+  test('/ste glossary off stops it, and a bare /ste glossary shows the usage', async ($, on) => {
+    engine(on)
+    await $.command.run(ste('glossary on'))
+    await $.command.run(ste('glossary off'))
+    expect((await $.command.run(ste('status'))).text).toMatch(/glossary: off/)
+    expect((await $.command.run(ste('glossary'))).text).toMatch(/Usage/)
+  })
+
   test('a rewrite that only moves small words is not shown', async ($, on) => {
     const typedText =
       'Read the README and the CONTRIBUTING file. Then update the install section and the test section so they match the current commands.'

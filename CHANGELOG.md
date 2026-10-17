@@ -4,6 +4,10 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `/ste glossary on|off`: the rewrite follows `CONTEXT.md` in the project, as data. It is off by default and kept across sessions.
+
 ## [0.2.0] - 2026-10-17
 
 ### Added

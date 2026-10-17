@@ -17,6 +17,8 @@ declare module 'claude-code' {
       isEnabled: boolean
       // Denies in a row since the last Accept, Edit or pause.
       denyStreak: number
+      // Whether the rewrite follows CONTEXT.md in the project.
+      useGlossary: boolean
     }
   }
 }

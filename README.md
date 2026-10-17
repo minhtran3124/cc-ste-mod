@@ -39,6 +39,7 @@ The mod sends the prompt unchanged, without a rewrite, when:
 /ste status   show whether the rewrite is on, and the model
 /ste review   open the waiting rewrite in its pane again
 /ste skip     stop a rewrite that is running and send the prompt as typed
+/ste glossary on|off   follow CONTEXT.md in the project (off by default, kept across sessions)
 /ste check    say what the mod would do with some text, with no model call: /ste check <text>
 /ste on       turn the rewrite on (kept across sessions)
 /ste off      turn it off (kept across sessions)
@@ -52,6 +53,8 @@ The mod sends the prompt unchanged, without a rewrite, when:
 
 Open `/config` and set **Rewrite model** to `claude-haiku-5-5`, `claude-sonnet-5-5` or `claude-opus-5-5`. Each is a pinned model version, so the rewrite does not change when a new model ships. `claude-haiku-5-5` is the fastest. Every rewritten prompt waits for one model call, up to 30 seconds.
 
+**Project glossary.** Run `/ste glossary on` to make the rewrite follow `CONTEXT.md` in the project you run in. The file lists the terms of the project, and it can name words to avoid on `_Avoid_` lines. The rewrite uses each term as written and never uses a word that a line rejects. The mod sends the first 4000 characters of the file as data, not as instructions. It is off by default, because a cloned repo can ship its own `CONTEXT.md`. Turn it on only for projects you trust.
+
 **Rewrite mode** is `strict` by default: every STE rule applies. Set it to `pragmatic` to keep technical nouns and project terms as you wrote them, and to allow sentences of up to 25 words. `/ste status` shows the mode.
 
 **Skill source** is `bundled` by default. Set it to `project` to read `.claude/skills/asd-ste100/SKILL.md` from the project you run in (see Install).
@@ -63,6 +66,7 @@ Tested with Claude Code 2.1.302. The mod uses function hooks, an early-access AP
 What the mod does on your machine:
 
 - It reads the skill file: the copy in `skill/`, or the project copy if you set **Skill source** to `project`.
+- It reads `CONTEXT.md` in the project only after you run `/ste glossary on`.
 - It sends each prompt that needs a rewrite to the rewrite model. Fenced code blocks and pasted logs or stack traces are swapped for markers first, so the model never sees them, and they come back unchanged.
 - It stores the `/ste on` and `/ste off` choice in the mod store. It makes no other network call and writes no file.
 
