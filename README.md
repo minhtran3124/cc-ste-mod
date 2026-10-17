@@ -88,6 +88,8 @@ The mod uses the skill copy in `skill/`. To use `.claude/skills/asd-ste100/SKILL
 
 ## Develop
 
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before you send a change. [CHANGELOG.md](CHANGELOG.md) lists what changed in each version.
+
 ```sh
 claude plugin validate .   # check the manifest and the hooks module
 claude plugin test .       # run tests/*.test.tsx
