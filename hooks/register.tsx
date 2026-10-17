@@ -332,7 +332,9 @@ function lostFrom(original: string, refined: string): string[] {
   const tokens = KEPT.flatMap(pattern => [...original.matchAll(pattern)].map(m => m[0].trim())).filter(
     token => !NOT_PATHS.has(token.toLowerCase()),
   )
-  const lost = [...new Set(tokens)].filter(token => !refined.includes(token))
+  // A URL holds a path-like tail, and a fenced block holds code spans: name only the longest.
+  const unique = [...new Set(tokens)].filter(token => !tokens.some(other => other !== token && other.includes(token)))
+  const lost = unique.filter(token => !refined.includes(token))
   const numbers = new Set(refined.match(NUMBER))
   for (const number of new Set(original.match(NUMBER)))
     if (!numbers.has(number) && !lost.some(token => token.includes(number))) lost.push(number)

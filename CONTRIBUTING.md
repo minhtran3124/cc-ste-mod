@@ -42,6 +42,8 @@ There is no build step. Claude Code reads `hooks/register.tsx` when it loads the
 | `hooks/register.tsx`      | The hooks: prompt rewrite, pane, band, `/ste` command                  |
 | `types/index.d.ts`        | Types of the mod's session state                                       |
 | `tests/register.test.tsx` | Tests                                                                  |
+| `tests/eval.test.tsx`     | The eval: labelled prompts and rewrites, run through the mod           |
+| `tests/fixtures/`         | The eval cases: `gate-cases.ts` and `meaning-cases.ts`                 |
 | `skill/`                  | Bundled copy of the asd-ste100 skill. Do not edit. Change it upstream. |
 | `.claude-plugin/`         | The manifest, the settings, and the marketplace entry                  |
 
@@ -65,6 +67,8 @@ npm run format:check
 ```
 
 Add a test in `tests/register.test.tsx` for each new behaviour. The tests put a stub model under the mod, so they do not call a real model.
+
+The eval in `tests/eval.test.tsx` checks two things with labelled cases. The gate cases say if a prompt must get a rewrite or go as typed. The meaning cases pair a prompt with a rewrite, and say what the rewrite lost. When the mod gets a real prompt wrong, add it to `tests/fixtures/gate-cases.ts` or `tests/fixtures/meaning-cases.ts` with the right answer, then fix the code. The eval uses a stub model, so it tests the checks of the mod, not the quality of a real rewrite.
 
 The tests cannot show how the review looks and feels. Test by hand in a real session as well:
 

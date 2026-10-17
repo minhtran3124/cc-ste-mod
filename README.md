@@ -101,13 +101,14 @@ npm install                # once, for Prettier
 npm run format:check       # check formatting (npm run format fixes it)
 ```
 
-| Path                         | What it holds                                           |
-| ---------------------------- | ------------------------------------------------------- |
-| `.claude-plugin/plugin.json` | Manifest and the `model` setting                        |
-| `hooks/register.tsx`         | The hooks: prompt rewrite, band, `/ste` command         |
-| `types/index.d.ts`           | Types of the mod's session state                        |
-| `tests/`                     | Tests for accept, edit, deny and the pass-through cases |
-| `skill/`                     | Bundled copy of the asd-ste100 skill                    |
+| Path                         | What it holds                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `.claude-plugin/plugin.json` | Manifest and the `model` setting                                               |
+| `hooks/register.tsx`         | The hooks: prompt rewrite, band, `/ste` command                                |
+| `types/index.d.ts`           | Types of the mod's session state                                               |
+| `tests/`                     | Tests for accept, edit, deny and the pass-through cases                        |
+| `tests/eval.test.tsx`        | Labelled prompts and rewrites that check the gate and the lost-content warning |
+| `skill/`                     | Bundled copy of the asd-ste100 skill                                           |
 
 ## License
 

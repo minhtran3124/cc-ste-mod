@@ -6,6 +6,7 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- An eval: 24 labelled prompts for the gate and 13 prompt and rewrite pairs for the lost-content warning, in `tests/eval.test.tsx` and `tests/fixtures/`.
 - `/ste glossary on|off`: the rewrite follows `CONTEXT.md` in the project, as data. It is off by default and kept across sessions.
 
 ## [0.2.0] - 2026-10-17
