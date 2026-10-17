@@ -44,5 +44,5 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tests, and the marketplace entry for installing from this repository.
 
 [Unreleased]: https://github.com/minhtran3124/cc-ste-mod/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/minhtran3124/cc-ste-mod/compare/069e747...v0.2.0
-[0.1.0]: https://github.com/minhtran3124/cc-ste-mod/commit/069e747
+[0.2.0]: https://github.com/minhtran3124/cc-ste-mod/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/minhtran3124/cc-ste-mod/releases/tag/v0.1.0
