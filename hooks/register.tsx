@@ -63,6 +63,9 @@ const RING = {
   edit: [EDIT_INPUT, 'back', 'deny'],
 } as const
 
+// The button that takes the focus first. A rewrite that lost something starts on Edit, so Enter does not accept it.
+const firstKey = (p: { lost?: string[] }): string => (p.lost?.length ? 'edit' : 'accept')
+
 // The element that last took the pane's ring. The engine does not say where a move starts,
 // so the mod keeps it to know which end of the ring a move off the buttons leaves from.
 let ringAt: string | undefined
@@ -244,6 +247,26 @@ function isTrivialRewrite(original: string, refined: string): boolean {
 
 const countWords = (text: string): number => text.trim().split(/\s+/).filter(Boolean).length
 
+// What a rewrite must keep as written: code, URLs, paths and numbers. A model can drop one and still read well.
+const KEPT = [/```[\s\S]*?```|`[^`\n]+`/g, /\bhttps?:\/\/[^\s)>\]]+/g, /(?:\.{0,2}\/|~\/)?[\w.-]+(?:\/[\w.-]+)+/g]
+const NUMBER = /\b\d+(?:[.,]\d+)*\b/g
+const NEGATION = /\b(?:not|never|no|cannot|without)\b|n['\u2019]t\b/gi
+const NOT_PATHS = new Set(['and/or', 'yes/no', 'true/false'])
+
+// What the original holds and the rewrite does not: a kept token, a number, or a negation word.
+function lostFrom(original: string, refined: string): string[] {
+  const tokens = KEPT.flatMap(pattern => [...original.matchAll(pattern)].map(m => m[0].trim())).filter(
+    token => !NOT_PATHS.has(token.toLowerCase()),
+  )
+  const lost = [...new Set(tokens)].filter(token => !refined.includes(token))
+  const numbers = new Set(refined.match(NUMBER))
+  for (const number of new Set(original.match(NUMBER)))
+    if (!numbers.has(number) && !lost.some(token => token.includes(number))) lost.push(number)
+  // The words change ("don't" to "do not"), so count them. Fewer means a "not" was dropped.
+  if ((original.match(NEGATION)?.length ?? 0) > (refined.match(NEGATION)?.length ?? 0)) lost.push('negation')
+  return lost
+}
+
 // The call that rewrites the held prompt, so /ste skip can cut it.
 let pending: AbortController | undefined
 
@@ -353,7 +376,7 @@ async function setEditing($: EngineInterface, isEditing: boolean): Promise<boole
   if (p === null) return false
   await update($, proposal, now => (now === null ? null : { ...now, isEditing }))
   // The view changes and its autoFocus element takes the ring.
-  ringAt = isEditing ? EDIT_INPUT : 'accept'
+  ringAt = isEditing ? EDIT_INPUT : firstKey(p)
   return true
 }
 
@@ -417,7 +440,7 @@ async function review($: EngineInterface): Promise<string> {
     return 'No STE rewrite is waiting.'
   }
   await update($, proposal, current => (current === null ? null : { ...current, inPane, isEditing: false }))
-  ringAt = 'accept'
+  ringAt = firstKey(p)
   later($, REFOCUS_MS, () => refocusPane($))
   return 'Opened the STE rewrite in its pane.'
 }
@@ -436,6 +459,9 @@ function drawReview(
   const { Box, Button, Text } = $.ui.resolve(e)
   const width = Math.max(20, columns - 12)
   const hasKeys = e.surface !== 'mobile'
+  // Mobile has no Edit button, so Accept keeps the focus there.
+  const isWarned = p.lost !== undefined && p.lost.length > 0
+  const isEditFirst = isWarned && hasKeys
 
   if (p.isEditing && e.surface !== 'mobile') {
     const { Input } = $.ui.resolve(e)
@@ -481,10 +507,20 @@ function drawReview(
       </Box>
       {p.reasons !== undefined && p.reasons.length > 0 && <Text dimColor>Why: {p.reasons.join(' · ')}</Text>}
       {p.note !== undefined && <Text dimColor>Kept as-is: {p.note}</Text>}
+      {isWarned && <Text color="warning">{lostText(p.lost!)}</Text>}
       <Box>
-        <Button key="accept" label="Accept" hotkey="1" variant="primary" autoFocus onPress={() => accept($)} />
+        {isEditFirst ? (
+          <Button key="accept" label="Accept" hotkey="1" variant="primary" onPress={() => accept($)} />
+        ) : (
+          <Button key="accept" label="Accept" hotkey="1" variant="primary" autoFocus onPress={() => accept($)} />
+        )}
         <Text> </Text>
-        {e.surface !== 'mobile' && <Button key="edit" label="Edit" hotkey="2" onPress={() => edit($, siteId)} />}
+        {e.surface !== 'mobile' &&
+          (isEditFirst ? (
+            <Button key="edit" label="Edit" hotkey="2" autoFocus onPress={() => edit($, siteId)} />
+          ) : (
+            <Button key="edit" label="Edit" hotkey="2" onPress={() => edit($, siteId)} />
+          ))}
         {e.surface !== 'mobile' && <Text> </Text>}
         <Button key="deny" label="Deny (send original)" hotkey="3" onPress={() => deny($)} />
         {site === 'band' && <Text> </Text>}
@@ -521,21 +557,32 @@ async function refocusPane($: EngineInterface): Promise<void> {
   await clearPromptBox($, [p.original])
   try {
     await $.ui.open({ ...DIALOG, rows: paneRows(p, await read($, denyStreak)) })
-    await $.ui.focus({ requestId: PANE, key: 'accept' })
+    await $.ui.focus({ requestId: PANE, key: firstKey(p) })
   } catch {
     // the pane is still there; a click or ctrl+x tab focuses it
   }
 }
 
+// The warning line: what the rewrite lost, a few at a time.
+const lostText = (lost: string[]): string =>
+  `The rewrite lost ${lost
+    .slice(0, 4)
+    .map(token => firstLine(token, 30))
+    .join(', ')}${lost.length > 4 ? ', …' : ''}. Check it before you accept.`
+
 // Rows the pane asks for: the text wrapped to a typical width plus the frame, buttons and hints.
 // Wraps at a narrow 50 columns and adds slack: too many rows only leaves blank lines,
 // too few makes the pane scroll, and then the arrow keys scroll instead of moving.
-function paneRows(p: { original: string; refined: string; note?: string; reasons?: string[] }, streak: number): number {
+function paneRows(
+  p: { original: string; refined: string; note?: string; reasons?: string[]; lost?: string[] },
+  streak: number,
+): number {
   const wrapped = p.refined.split('\n').reduce((n, line) => n + Math.max(1, Math.ceil(line.length / 50)), 0)
   // 9: the frame, the buttons and a key hint that wraps to two or three lines at 50 columns.
   const why = p.reasons?.length ? Math.ceil(p.reasons.join(' · ').length / 50) : 0
   const offer = streak >= DENY_STREAK ? 2 : 0
-  const frame = 9 + why + offer + (p.note === undefined ? 0 : Math.ceil(p.note.length / 50))
+  const lost = p.lost?.length ? Math.ceil(lostText(p.lost).length / 50) : 0
+  const frame = 9 + why + offer + lost + (p.note === undefined ? 0 : Math.ceil(p.note.length / 50))
   return Math.min(30, wrapped + frame + 2)
 }
 
@@ -660,11 +707,18 @@ export const register: Register = (on, options) => {
     // A focused pane takes the keyboard (Tab, Enter); the band only does after ctrl+x tab.
     await clearPromptBox($, [original])
     const reasons = extractAll(answer, 'why').slice(0, MAX_REASONS)
-    const fields = { original, refined, note, reasons: reasons.length > 0 ? reasons : undefined }
+    const lost = lostFrom(original, refined)
+    const fields = {
+      original,
+      refined,
+      note,
+      reasons: reasons.length > 0 ? reasons : undefined,
+      lost: lost.length > 0 ? lost : undefined,
+    }
     const inPane = await openPane($, paneRows(fields, await read($, denyStreak)))
     const ready: Proposal = { ...fields, inPane }
     await update($, proposal, () => ready)
-    ringAt = 'accept'
+    ringAt = firstKey(ready)
     if (inPane) later($, REFOCUS_MS, () => refocusPane($))
     return { drop: DROP_HINT[inPane ? 'pane' : 'band'] }
   }).catch(async ($, e, next) => {

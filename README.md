@@ -10,7 +10,7 @@ The rewrite rules come from the [asd-ste100 skill](https://github.com/danyuchn/a
 
 1. Type a prompt and press Enter.
 2. The mod holds the prompt and asks a small model (`claude-haiku-5-5` by default) for an STE100 rewrite. A status line under the prompt shows while it works. To stop the wait and send the prompt as typed, run `/ste skip`. No box opens unless there is a rewrite to review.
-3. A pane opens with your original and the rewrite, and it takes the keyboard. Words that are new in the rewrite are highlighted, and the title shows the word count before and after. A **Why** line names up to three STE rules that the rewrite applied. **Accept** is selected first, so Enter accepts:
+3. A pane opens with your original and the rewrite, and it takes the keyboard. Words that are new in the rewrite are highlighted, and the title shows the word count before and after. A **Why** line names up to three STE rules that the rewrite applied. If the rewrite lost a code span, URL, path, number or negation ("not", "never", "no", "don't") from your prompt, a warning line names it, and **Edit** is selected first, so Enter does not accept it by mistake. Otherwise **Accept** is selected first, so Enter accepts:
    - **Tab** moves between **Accept**, **Edit** and **Deny**. From **Deny**, Tab goes back to **Accept**.
    - **Enter** presses the selected button. `1`, `2` and `3` press them directly.
    - **Esc** or the close mark closes the pane and keeps the rewrite waiting in the band above the prompt. A toast tells you where it went.

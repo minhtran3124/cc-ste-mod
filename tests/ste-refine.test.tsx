@@ -382,6 +382,57 @@ test('shows why the rewrite changed the prompt', async ($, on) => {
   }
 })
 
+test('warns when the rewrite drops a negation or a number, and starts on Edit', async ($, on) => {
+  const typedText = 'Do not kick off the build and then check the logs, because the staging run uses 3 workers'
+  engine(on, {
+    reply: {
+      ...answered,
+      text: '<rewrite>Start the build. Then read the logs. The staging run uses workers.</rewrite>',
+    },
+  })
+  await $.prompt.submit(typed(typedText))
+  const first = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await first.find({ type: 'Button', key: 'edit' }))?.props.autoFocus).toBe(true)
+  expect((await first.find({ type: 'Button', key: 'accept' }))?.props.autoFocus).toBeUndefined()
+  await first.unmount()
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const pane = await $.ui.mount({ ...PANE, surface })
+    expect(
+      await pane.find({ type: 'Text', text: 'The rewrite lost 3, negation. Check it before you accept.' }),
+    ).toBeDefined()
+    await pane.unmount()
+  }
+})
+
+test('warns when the rewrite drops a code span', async ($, on) => {
+  const typedText = 'Rename `getUser` to `fetchUser` in src/api and then kick off the build'
+  engine(on, {
+    reply: { ...answered, text: '<rewrite>Rename getUser to fetchUser in src/api. Start the build.</rewrite>' },
+  })
+  await $.prompt.submit(typed(typedText))
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(
+    await pane.find({ type: 'Text', text: 'The rewrite lost `getUser`, `fetchUser`. Check it before you accept.' }),
+  ).toBeDefined()
+  await pane.unmount()
+})
+
+test('a rewrite that keeps everything shows no warning and starts on Accept', async ($, on) => {
+  const typedText = 'Do not kick off the build with `npm ci` in src/api and then check the 3 logs'
+  engine(on, {
+    reply: {
+      ...answered,
+      text: '<rewrite>Do not start the build with `npm ci` in src/api. Then read the 3 logs.</rewrite>',
+    },
+  })
+  await $.prompt.submit(typed(typedText))
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await pane.find({ type: 'Button', key: 'accept' }))?.props.autoFocus).toBe(true)
+  expect((await pane.find({ type: 'Button', key: 'edit' }))?.props.autoFocus).toBeUndefined()
+  expect(await pane.find({ type: 'Text', text: /rewrite lost/ })).toBeUndefined()
+  await pane.unmount()
+})
+
 test('after 3 Denies in a row, the review offers to pause for the session', async ($, on) => {
   const { sent, model } = engine(on)
   for (let round = 0; round < 3; round++) {
