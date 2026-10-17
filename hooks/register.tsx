@@ -34,6 +34,9 @@ const DIALOG = { id: PANE, title: PANE_TITLE, focus: true, closeOnEscape: true, 
 // Where the review is drawn. The pane holds the keys when it opens; the band only after ctrl+x tab.
 type Site = 'pane' | 'band'
 
+// Which copy of the asd-ste100 skill the rewrite follows. The project's copy is read only when chosen.
+type SkillSource = 'bundled' | 'project'
+
 // Key hints, one dim line under the buttons. Mobile has no keys, so it shows none.
 const HINTS = {
   pane: {
@@ -146,14 +149,19 @@ const proseOf = (text: string): string =>
 
 // The patterns STE exists to fix that a short prompt can still hold.
 const RISKS: { name: string; pattern: RegExp }[] = [
-  // A phrasal verb: "kick off", "set up", "look into". A two-word verb has meanings its parts do not predict.
+  // A phrasal verb: "kick off", "set up", "log in". A two-word verb has meanings its parts do not predict.
   {
     name: 'phrasal verb',
     pattern:
-      /\b(?:set|kick|spin|look|figure|go|check|clean|sort|find|fill|shut|start|roll|carry|point|come|bring|break|turn|take|put|give|wrap|pick|hook|tear|mess|end|back|switch|leave|get)\s+(?:up|off|out|into|over|through|down|back|away|around)\b/gi,
+      /\b(?:set|kick|spin|look|figure|go|check|clean|sort|find|fill|shut|start|roll|carry|point|come|bring|break|turn|take|put|give|wrap|pick|hook|tear|mess|end|back|switch|leave|get|log|sign|run|pull|call|move|fall|hand|hold|keep|cut|lock|print|show|step|stop)\s+(?:up|off|out|into|over|through|down|back|away|around|on|in)\b/gi,
   },
-  // Passive voice: "is deleted", "was written", "be removed".
-  { name: 'passive verb', pattern: /\b(?:is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?\w+(?:ed|en)\b/gi },
+  // Passive voice: "is deleted", "was written", "be removed". An adjective or adverb that ends in -ed or -en
+  // is not passive: "is open", "is often", "is green".
+  {
+    name: 'passive verb',
+    pattern:
+      /\b(?:is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(?!(?:open|often|even|green|seven|eleven|tired|excited|interested|scared|bored|supposed|experienced|dedicated|married)\b)\w+(?:ed|en)\b/gi,
+  },
   // STE bans the semicolon.
   { name: 'semicolon', pattern: /;/g },
 ]
@@ -244,10 +252,12 @@ let skill: string | undefined
 // Set once the person has been told that no copy of the skill could be read.
 let isSkillMissingToldOnce = false
 
-async function loadSkill($: EngineInterface): Promise<string> {
+async function loadSkill($: EngineInterface, source: SkillSource): Promise<string> {
   if (skill !== undefined) return skill
-  // Prefer the project's copy so a skill update reaches the mod; fall back to the bundled one.
-  const paths = ['.claude/skills/asd-ste100/SKILL.md', `${$.plugin.root}/skill/SKILL.md`]
+  // A cloned repo can ship its own skill, and that text would steer the rewrite. So the project's
+  // copy is read only when the person chose it, and the bundled copy is the default.
+  const bundled = `${$.plugin.root}/skill/SKILL.md`
+  const paths = source === 'project' ? ['.claude/skills/asd-ste100/SKILL.md', bundled] : [bundled]
   for (const path of paths) {
     try {
       const text = await $.fs.read(path)
@@ -531,6 +541,7 @@ function paneRows(p: { original: string; refined: string; note?: string; reasons
 
 export const register: Register = (on, options) => {
   const model = typeof options.model === 'string' ? options.model : 'claude-haiku-5-5'
+  const skillSource: SkillSource = options.skillSource === 'project' ? 'project' : 'bundled'
 
   on('session.start', async ($, e, next) => {
     const stored = await $.store.get(STORE_ENABLED)
@@ -603,7 +614,7 @@ export const register: Register = (on, options) => {
     // No box while the model works: one appears only when there is a rewrite to review.
     $.ui.status(WORKING)
 
-    const rules = await loadSkill($)
+    const rules = await loadSkill($, skillSource)
     if (stop.signal.aborted) {
       pending = undefined
       $.ui.status(undefined)

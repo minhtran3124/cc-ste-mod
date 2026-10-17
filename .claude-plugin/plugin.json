@@ -10,6 +10,13 @@
       "description": "The model that rewrites the prompt, pinned to a version",
       "default": "claude-haiku-5-5",
       "options": ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"]
+    },
+    "skillSource": {
+      "type": "string",
+      "title": "Skill source",
+      "description": "bundled: the skill copy in this mod. project: .claude/skills/asd-ste100 in the project you run in (use only for projects you trust)",
+      "default": "bundled",
+      "options": ["bundled", "project"]
     }
   }
 }

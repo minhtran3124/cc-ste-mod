@@ -550,6 +550,44 @@ test('a phrasal verb inside code or a path does not count', async ($, on) => {
   expect(model.calls).toBe(0)
 })
 
+test('an adjective that ends in -ed or -en is not a passive verb', async ($, on) => {
+  const { sent, model } = engine(on)
+  const adjectives = [
+    'The port is open on my laptop, check it.',
+    'The cache is often stale after a deploy, so clear it.',
+    'The build is green, so merge the branch now.',
+  ]
+  for (const text of adjectives) await $.prompt.submit(typed(text))
+  expect(model.calls).toBe(0)
+  expect(sent).toEqual(adjectives)
+})
+
+test('a phrasal verb with on or in, or a verb such as log or sign, counts', async ($, on) => {
+  const { model } = engine(on)
+  const phrasal = [
+    'Turn on the feature flag before you deploy.',
+    'Log in to the staging server first.',
+    'Sign in with the test account now.',
+  ]
+  for (const text of phrasal) {
+    await $.prompt.submit(typed(text))
+    await $.command.run(ste('deny'))
+  }
+  expect(model.calls).toBe(phrasal.length)
+})
+
+test('the bundled skill is read unless the project skill is chosen', async ($, on) => {
+  engine(on)
+  const reads: string[] = []
+  on('fs.read', (_$, e) => {
+    reads.push(JSON.stringify(e))
+    throw new Error('ENOENT')
+  })
+  await $.prompt.submit(typed(TYPED))
+  expect(reads.some(read => read.includes('skill/SKILL.md'))).toBe(true)
+  expect(reads.some(read => read.includes('.claude/skills'))).toBe(false)
+})
+
 test('a rewrite that only moves small words is not shown', async ($, on) => {
   const typedText =
     'Read the README and the CONTRIBUTING file. Then update the install section and the test section so they match the current commands.'
