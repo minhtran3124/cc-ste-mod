@@ -2,6 +2,11 @@
   "name": "ste-refine",
   "version": "0.1.0",
   "description": "Rewrites each typed prompt with the ASD-STE100 skill and lets you accept, edit or deny the rewrite before it is sent",
+  "author": {
+    "name": "Minh Tran"
+  },
+  "repository": "https://github.com/minhtran3124/cc-ste-mod",
+  "license": "MIT",
   "types": "./types/index.d.ts",
   "userConfig": {
     "model": {

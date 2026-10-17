@@ -639,6 +639,44 @@ test('the bundled skill is read unless the project skill is chosen', async ($, o
   expect(reads.some(read => read.includes('.claude/skills'))).toBe(false)
 })
 
+test('a pasted block is hidden from the model and put back in the rewrite', async ($, on) => {
+  const block = '```\nTypeError: x is undefined\n  at foo (a.js:1:1)\n```'
+  const { sent, model } = engine(on, {
+    reply: { ...answered, text: '<rewrite>Start the build. Then read this error.\n{{KEEP_1}}</rewrite>' },
+  })
+  await $.prompt.submit(typed(`Please kick off the build and then check this error\n${block}`))
+  expect(model.prompts[0]).toContain('{{KEEP_1}}')
+  expect(model.prompts[0]).not.toContain('TypeError')
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'accept' })
+  expect(sent).toEqual([`Start the build. Then read this error.\n${block}`])
+  await pane.unmount()
+})
+
+test('a stack trace with no fence is hidden from the model too', async ($, on) => {
+  const trace = '  at foo (a.js:1:1)\n  at bar (b.js:2:2)'
+  const { model } = engine(on)
+  await $.prompt.submit(typed(`Please kick off the build and then check this error\n${trace}`))
+  expect(model.prompts[0]).toContain('{{KEEP_1}}')
+  expect(model.prompts[0]).not.toContain('a.js')
+})
+
+test('a rewrite that loses a pasted block is not shown', async ($, on) => {
+  const text = 'Please kick off the build and then check this error\n```\nboom\n```'
+  const { sent, opened } = engine(on)
+  await $.prompt.submit(typed(text))
+  expect(opened).toEqual([])
+  expect(sent).toEqual([text])
+})
+
+test('a prompt that is simple without its pasted block goes as typed', async ($, on) => {
+  const text = 'Why does this fail\n```\nTypeError: x is undefined\n```'
+  const { sent, model } = engine(on)
+  await $.prompt.submit(typed(text))
+  expect(model.calls).toBe(0)
+  expect(sent).toEqual([text])
+})
+
 test('a rewrite that only moves small words is not shown', async ($, on) => {
   const typedText =
     'Read the README and the CONTRIBUTING file. Then update the install section and the test section so they match the current commands.'

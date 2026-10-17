@@ -53,6 +53,16 @@ Open `/config` and set **Rewrite model** to `claude-haiku-5-5`, `claude-sonnet-5
 
 **Skill source** is `bundled` by default. Set it to `project` to read `.claude/skills/asd-ste100/SKILL.md` from the project you run in (see Install).
 
+## Requirements and access
+
+Tested with Claude Code 2.1.302. The mod uses function hooks, an early-access API that can change without notice.
+
+What the mod does on your machine:
+
+- It reads the skill file: the copy in `skill/`, or the project copy if you set **Skill source** to `project`.
+- It sends each prompt that needs a rewrite to the rewrite model. Fenced code blocks and pasted logs or stack traces are swapped for markers first, so the model never sees them, and they come back unchanged.
+- It stores the `/ste on` and `/ste off` choice in the mod store. It makes no other network call and writes no file.
+
 ## Install
 
 Inside Claude Code, add this repository as a marketplace and install the mod:
